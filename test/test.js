@@ -84,11 +84,22 @@ describe.only("Impure Diamond Test", async function () {
         );
     });
 
-    it("should add facets() back", async () => {
-        const selectors = getSelectors(diamondLoupe).get(["facets()"]);
-        await addSelectors(diamond.address, selectors);
+    it("should add diamondLoupe functions back", async () => {
+        const selectors = getSelectors(diamondLoupe);
+        const facetSelectors = selectors.get(["facetAddress(bytes4)"]);
+        const diamondSelectors = selectors.get(["facets()"]);
+
+        await addSelectors(diamond.address, diamondSelectors);
+        await addSelectors(diamondLoupeFacet.address, facetSelectors);
         result = await diamondLoupe.facetFunctionSelectors(diamond.address);
-        assert.sameMembers(result, getSelectors(diamond).remove(["facetAddress(bytes4)"]));
+        assert.sameMembers(
+            result,
+            getSelectors(diamond).remove(["facetAddress(bytes4)"])
+        );
+        result = await diamondLoupe.facetFunctionSelectors(
+            diamondLoupeFacet.address
+        );
+        assert.sameMembers(result, facetSelectors);
     });
 
     it("shouldn't be able to replace immutable functions", async () => {
@@ -100,12 +111,25 @@ describe.only("Impure Diamond Test", async function () {
         }
     });
 
-    it("should make facets() mutable and add facetAddress(bytes4)", async () => {
+    it("shouldn't be able to remove immutable functions", async () => {
+        const selectors = getSelectors(diamondLoupe).get(["facets()"]);
+        try {
+            await removeSelectors(ethers.constants.AddressZero, selectors);
+        } catch (e) {
+            assert.isAbove(e.message.indexOf("immutable"), -1);
+        }
+    });
+
+    it("should upgrade mutability for diamondLoupe functions", async () => {
         const selectors = getSelectors(diamondLoupe);
         await facetCut(
-            diamond.address,
-            selectors.get(["facetAddress(bytes4)"]),
-            FacetCutAction.Add,
+            [
+                {
+                    facetAddress: diamond.address,
+                    functionSelectors: selectors.get(["facetAddress(bytes4)"]),
+                    action: FacetCutAction.Replace,
+                },
+            ],
             diamondInit.address,
             diamondInit.interface.encodeFunctionData("init", [selectors])
         );
@@ -113,44 +137,43 @@ describe.only("Impure Diamond Test", async function () {
 });
 
 async function addSelectors(facetAddress, functionSelectors) {
-    return await facetCut(facetAddress, functionSelectors, FacetCutAction.Add);
+    return await facetCut([
+        {
+            facetAddress,
+            functionSelectors,
+            action: FacetCutAction.Add,
+        },
+    ]);
 }
 
 async function replaceSelectors(facetAddress, functionSelectors) {
-    return await facetCut(
-        facetAddress,
-        functionSelectors,
-        FacetCutAction.Replace
-    );
+    return await facetCut([
+        {
+            facetAddress,
+            functionSelectors,
+            action: FacetCutAction.Replace,
+        },
+    ]);
 }
 
 async function removeSelectors(facetAddress, functionSelectors) {
-    return await facetCut(
-        facetAddress,
-        functionSelectors,
-        FacetCutAction.Remove
-    );
+    return await facetCut([
+        {
+            facetAddress,
+            functionSelectors,
+            action: FacetCutAction.Remove,
+        },
+    ]);
 }
 
 async function facetCut(
-    facetAddress,
-    functionSelectors,
-    action,
+    facetCuts,
     init = ethers.constants.AddressZero,
     calldata = "0x"
 ) {
-    tx = await diamondCut.diamondCut(
-        [
-            {
-                facetAddress,
-                action,
-                functionSelectors,
-            },
-        ],
-        init,
-        calldata,
-        { gasLimit: 800000 }
-    );
+    tx = await diamondCut.diamondCut(facetCuts, init, calldata, {
+        gasLimit: 800000,
+    });
     receipt = await tx.wait();
     if (!receipt.status) {
         throw Error(`Diamond upgrade failed: ${tx.hash}`);
