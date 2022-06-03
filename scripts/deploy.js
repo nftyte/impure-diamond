@@ -8,7 +8,9 @@ async function deploy() {
     const contractOwner = accounts[0];
 
     // deploy Diamond
-    return await deployer("ImpureDiamond", contractOwner.address);
+    const diamond = await deployer("ImpureDiamond", contractOwner.address);
+    console.log(`ImpureDiamond deployed:`, diamond.address);
+    return diamond;
 }
 
 // We recommend this pattern to be able to use async/await everywhere
