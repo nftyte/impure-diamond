@@ -84,6 +84,14 @@ describe.only("Impure Diamond Test", async function () {
         );
     });
 
+    it("shouldn't be able to call removed inclusions", async () => {
+        try {
+            await diamondLoupe.facets();
+        } catch (e) {
+            assert.isAbove(e.message.indexOf("exist"), -1);
+        }
+    });
+
     it("should add diamondLoupe functions back", async () => {
         const selectors = getSelectors(diamondLoupe);
         const facetSelectors = selectors.get(["facetAddress(bytes4)"]);
@@ -100,6 +108,12 @@ describe.only("Impure Diamond Test", async function () {
             diamondLoupeFacet.address
         );
         assert.sameMembers(result, facetSelectors);
+    });
+    
+    it("test diamondLoupe function call", async () => {
+        const selectors = getSelectors(diamondLoupe).get(["facetAddress(bytes4)"]);
+        result = await diamondLoupe.facetAddress(selectors[0]);
+        assert.equal(diamondLoupeFacet.address, result);
     });
 
     it("shouldn't be able to replace immutable functions", async () => {
