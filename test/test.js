@@ -133,7 +133,7 @@ describe("Impure Diamond Test", async function () {
         assert.equal(diamondLoupeFacet.address, result);
     });
 
-    it("prevent replacing immutable functions -- attempt replace facets function", async () => {
+    it("prevent replacing immutable functions -- attempt to replace facets function", async () => {
         const selectors = getSelectors(diamondLoupe).get(["facets()"]);
         try {
             await replaceSelectors(diamondLoupeFacet.address, selectors);
@@ -142,7 +142,7 @@ describe("Impure Diamond Test", async function () {
         }
     });
 
-    it("prevent removing immutable functions -- attempt remove facets function", async () => {
+    it("prevent removing immutable functions -- attempt to remove facets function", async () => {
         const selectors = getSelectors(diamondLoupe).get(["facets()"]);
         try {
             await removeSelectors(ethers.constants.AddressZero, selectors);
