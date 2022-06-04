@@ -1,6 +1,6 @@
 # Impure Diamond
 
-A reference implementation of an impure diamond: A diamond ([EIP-2535](https://github.com/ethereum/EIPs/issues/2535)) with immutable functions that can be upgraded.
+A reference implementation of an impure diamond: An [EIP-2535](https://github.com/ethereum/EIPs/issues/2535) diamond with immutable functions that can be upgraded.
 
 By implementing upgradable functions directly in the contract, an impure diamond can save gas on deployment and other transactions while maintaining its upgradability.
 
