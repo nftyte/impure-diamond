@@ -5,10 +5,10 @@ import { LibDiamond } from "./libraries/LibDiamond.sol";
 
 contract DiamondInclusions {
     /**
-     * @notice Attempts upgrading the inclusion call.
-     * @dev Upgrades the call if the inclusion was upgraded to an external facet.
-     * @return success_ `true` if call was upgraded.
-     * @return result_ returndata from upgraded call.
+     * @notice Attempts to upgrade an inclusion function call.
+     * @dev Upgrades the call if the inclusion function selector is part of an external facet.
+     * @return success_ `true` if the call was upgraded.
+     * @return result_ returndata from the upgraded call.
      */
     function inclusionCall() internal virtual returns (bool success_, bytes memory result_) {
         LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
