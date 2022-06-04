@@ -18,13 +18,14 @@ let diamond,
     diamondLoupe,
     diamondLoupeFacet,
     ownership,
+    ierc165,
     diamondInit,
     addresses,
     result,
     tx,
     receipt;
 
-describe.only("Impure Diamond Test", async function () {
+describe("Impure Diamond Test", async function () {
     before(async function () {
         diamond = await deploy();
         diamondCut = await ethers.getContractAt("DiamondCut", diamond.address);
@@ -35,6 +36,7 @@ describe.only("Impure Diamond Test", async function () {
         );
         diamondLoupeFacet = await deployer("DiamondLoupeFacet");
         ownership = await ethers.getContractAt("Ownership", diamond.address);
+        ierc165 = await ethers.getContractAt("IERC165", diamond.address);
         diamondInit = await deployer("DiamondInit");
         addresses = [];
     });
@@ -53,7 +55,7 @@ describe.only("Impure Diamond Test", async function () {
         assert.sameMembers(selectors, getSelectors(diamond));
     });
 
-    it("should replace supportsInterface function", async () => {
+    it("should upgrade supportsInterface function", async () => {
         const selectors = getSelectors(diamondLoupeFacet).get([
             "supportsInterface(bytes4)",
         ]);
@@ -64,7 +66,12 @@ describe.only("Impure Diamond Test", async function () {
         assert.sameMembers(result, selectors);
     });
 
-    it("should replace supportsInterface function back", async () => {
+    it("should test call to supportsInterface function", async () => {
+        tx = await ierc165.supportsInterface("0x01ffc9a7");
+        receipt = await tx.wait();
+    });
+
+    it("should downgrade supportsInterface function", async () => {
         const selectors = getSelectors(diamondLoupeFacet).get([
             "supportsInterface(bytes4)",
         ]);
@@ -73,7 +80,15 @@ describe.only("Impure Diamond Test", async function () {
         assert.sameMembers(result, getSelectors(diamond));
     });
 
-    it("should remove some diamondLoupe functions", async () => {
+    it("should test call to supportsInterface function", async () => {
+        let gasUsed = receipt.gasUsed;
+        tx = await ierc165.supportsInterface("0x01ffc9a7");
+        receipt = await tx.wait();
+        assert.isTrue(receipt.gasUsed.lt(gasUsed));
+        // console.log(receipt.gasUsed, gasUsed);
+    });
+
+    it("remove facets and facetAddress functions", async () => {
         const functionsToRemove = ["facets()", "facetAddress(bytes4)"];
         const selectors = getSelectors(diamondLoupe).get(functionsToRemove);
         await removeSelectors(ethers.constants.AddressZero, selectors);
@@ -84,7 +99,7 @@ describe.only("Impure Diamond Test", async function () {
         );
     });
 
-    it("shouldn't be able to call removed inclusions", async () => {
+    it("shouldn't be able to call removed functions -- attempt call to facets function", async () => {
         try {
             await diamondLoupe.facets();
         } catch (e) {
@@ -92,7 +107,7 @@ describe.only("Impure Diamond Test", async function () {
         }
     });
 
-    it("should add diamondLoupe functions back", async () => {
+    it("should add facets and facetAddress functions", async () => {
         const selectors = getSelectors(diamondLoupe);
         const facetSelectors = selectors.get(["facetAddress(bytes4)"]);
         const diamondSelectors = selectors.get(["facets()"]);
@@ -109,14 +124,16 @@ describe.only("Impure Diamond Test", async function () {
         );
         assert.sameMembers(result, facetSelectors);
     });
-    
-    it("test diamondLoupe function call", async () => {
-        const selectors = getSelectors(diamondLoupe).get(["facetAddress(bytes4)"]);
+
+    it("test diamondLoupeFacet function call -- call to facetAddress function", async () => {
+        const selectors = getSelectors(diamondLoupe).get([
+            "facetAddress(bytes4)",
+        ]);
         result = await diamondLoupe.facetAddress(selectors[0]);
         assert.equal(diamondLoupeFacet.address, result);
     });
 
-    it("shouldn't be able to replace immutable functions", async () => {
+    it("prevent replacing immutable functions -- attempt replace facets function", async () => {
         const selectors = getSelectors(diamondLoupe).get(["facets()"]);
         try {
             await replaceSelectors(diamondLoupeFacet.address, selectors);
@@ -125,7 +142,7 @@ describe.only("Impure Diamond Test", async function () {
         }
     });
 
-    it("shouldn't be able to remove immutable functions", async () => {
+    it("prevent removing immutable functions -- attempt remove facets function", async () => {
         const selectors = getSelectors(diamondLoupe).get(["facets()"]);
         try {
             await removeSelectors(ethers.constants.AddressZero, selectors);
@@ -134,19 +151,14 @@ describe.only("Impure Diamond Test", async function () {
         }
     });
 
-    it("should upgrade mutability for diamondLoupe functions", async () => {
-        const selectors = getSelectors(diamondLoupe);
-        await facetCut(
-            [
-                {
-                    facetAddress: diamond.address,
-                    functionSelectors: selectors.get(["facetAddress(bytes4)"]),
-                    action: FacetCutAction.Replace,
-                },
-            ],
-            diamondInit.address,
-            diamondInit.interface.encodeFunctionData("init", [selectors])
+    it("should make facetAddress function immutable", async () => {
+        const selectors = getSelectors(diamond);
+        await replaceSelectors(
+            diamond.address,
+            selectors.get(["facetAddress(bytes4)"])
         );
+        result = await diamondLoupe.facetFunctionSelectors(diamond.address);
+        assert.sameMembers(result, selectors);
     });
 });
 
