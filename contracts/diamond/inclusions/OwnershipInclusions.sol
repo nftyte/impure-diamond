@@ -14,17 +14,23 @@ contract OwnershipInclusions is IERC173, DiamondInclusions {
         LibDiamond.addInclusions(functionSelectors);
         LibDiamond.setSupportedInterface(type(IERC173).interfaceId, true);
     }
+    
+    /**
+     * @dev See {IERC173-owner}.
+     */
+    function owner() external virtual override returns (address) {
+        (bool success, address result) = addressInclusionCall();
+        return success ? result : LibDiamond.contractOwner();
+    }
 
+    /**
+     * @dev See {IERC173-transferOwnership}.
+     */
     function transferOwnership(address _newOwner) external virtual override {
         (bool success,) = inclusionCall();
         if (!success) {
             LibDiamond.enforceIsContractOwner();
             LibDiamond.setContractOwner(_newOwner);
         }
-    }
-
-    function owner() external virtual override returns (address) {
-        (bool success, address result) = addressInclusionCall();
-        return success ? result : LibDiamond.contractOwner();
     }
 }

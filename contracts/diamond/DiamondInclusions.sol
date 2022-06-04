@@ -4,11 +4,17 @@ pragma solidity ^0.8.0;
 import { LibDiamond } from "./libraries/LibDiamond.sol";
 
 contract DiamondInclusions {
+    /**
+     * @notice Attempts upgrading the inclusion call.
+     * @dev Upgrades the call if the inclusion was upgraded to an external facet.
+     * @return success_ `true` if call was upgraded.
+     * @return result_ returndata from upgraded call.
+     */
     function inclusionCall() internal virtual returns (bool success_, bytes memory result_) {
         LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
         address facet = ds.selectorInfo[msg.sig].facetAddress;
 
-        require(facet != address(0), "Diamond: Function does not exist");
+        require(facet != address(0), "DiamondInclusions: Function does not exist");
 
         if (facet != address(this)) {
             (success_, result_) = facet.delegatecall(msg.data);
@@ -23,6 +29,9 @@ contract DiamondInclusions {
         }
     }
 
+    /**
+     * @dev See {inclusionCall}.
+     */
     function boolInclusionCall() internal virtual returns(bool success_, bool result_) {
         (bool success, bytes memory result) = inclusionCall();
         if (success) {
@@ -30,6 +39,9 @@ contract DiamondInclusions {
         }
     }
     
+    /**
+     * @dev See {inclusionCall}.
+     */
     function addressInclusionCall() internal virtual returns(bool success_, address result_) {
         (bool success, bytes memory result) = inclusionCall();
         if (success) {
