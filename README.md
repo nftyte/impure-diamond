@@ -6,7 +6,7 @@ By implementing upgradable functions directly in the contract, an impure diamond
 
 ## Inclusions
 
-> Diamond inclusions are the non-diamond materials that get encapsulated inside diamond during its formation process in the mantle.
+> Diamond inclusions are the non-diamond materials that get encapsulated inside a diamond during its formation process in the mantle.
 
 External functions defined directly in a diamond remain immutable unless marked as inclusions.
 
@@ -16,7 +16,7 @@ An inclusion function call is upgraded by invoking `inclusionCall` or one of its
 
 The folder `contracts/diamond/inclusions` contains inclusion implementations for facets from the [diamond-1](https://github.com/mudgen/diamond-1-hardhat) repo.
 
-**Note:** The files in `contracts/diamond/facets` are used for testing upgradability and remain mostly unchanged.
+**Note:** The files in `contracts/diamond/facets` are used for testing upgradability.
 
 ## Deployment
 
