@@ -10,7 +10,7 @@ By implementing upgradable functions directly in the contract, an impure diamond
 
 External functions defined directly in a diamond remain immutable unless marked as inclusions.
 
-Inclusion functions work the same way as facet functions do: they can be upgraded using `diamondCut` function and viewed using `IDiamondLoupe` functions.
+Inclusion functions work the same way as facet functions do: they can be upgraded using the `diamondCut` function and viewed using `IDiamondLoupe` functions.
 
 An inclusion function call is upgraded by invoking `inclusionCall` or one of its aliases (see `contracts/diamond/DiamondInclusions.sol`) during execution.
 
