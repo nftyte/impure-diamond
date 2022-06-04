@@ -2,7 +2,7 @@
 
 A reference implementation of an impure diamond: an [EIP-2535](https://github.com/ethereum/EIPs/issues/2535) diamond with immutable functions that can be upgraded.
 
-By implementing upgradable functions directly in the contract, an impure diamond can save gas on deployment and other transactions while maintaining its upgradability.
+By implementing upgradable functions directly in the contract, an impure diamond can save gas on deployment and other transactions while maintaining upgradability.
 
 ## Inclusions
 
@@ -12,7 +12,7 @@ External functions defined directly in a diamond remain immutable unless marked 
 
 Inclusion functions work the same way as facet functions do: they can be upgraded using the `diamondCut` function and viewed using `IDiamondLoupe` functions.
 
-An inclusion function call is upgraded by invoking `inclusionCall` or one of its aliases (see `contracts/diamond/DiamondInclusions.sol`) during execution.
+An inclusion function call is upgraded by invoking `inclusionCall` or one of its aliases during execution. See `contracts/diamond/DiamondInclusions.sol` for more details.
 
 The folder `contracts/diamond/inclusions` contains inclusion implementations for facets from the [diamond-1](https://github.com/mudgen/diamond-1-hardhat) repo.
 
