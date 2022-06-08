@@ -12,11 +12,15 @@ External functions defined directly in a diamond remain immutable unless marked 
 
 Inclusion functions work the same way as facet functions do: they can be upgraded using the `diamondCut` function and viewed using `IDiamondLoupe` functions.
 
-An inclusion function call is upgraded by invoking `inclusionCall` or one of its aliases during execution. See `contracts/diamond/DiamondInclusions.sol` for more details.
+This repo implements two ways of upgrading inclusion function calls:
+- By adding the `inclusion` modifier to the function.
+- By calling `inclusionCall` or one of its aliases during function execution.
+
+**Note:** See `contracts/diamond/DiamondInclusions.sol` for more details.
 
 The folder `contracts/diamond/inclusions` contains inclusion implementations for facets from the [diamond-1](https://github.com/mudgen/diamond-1-hardhat) repo.
 
-**Note:** The files in `contracts/diamond/facets` are used for testing upgradability.
+The files in `contracts/diamond/facets` are used for testing upgradability.
 
 ## Deployment
 
