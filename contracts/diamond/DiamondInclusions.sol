@@ -8,10 +8,10 @@ contract DiamondInclusions {
         LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
         address facet = ds.selectorInfo[msg.sig].facetAddress;
 
-        require(facet != address(0), "DiamondInclusions: Function does not exist");
-        
         if (facet == address(this)) {
             _;
+        } else if (facet == address(0)) {
+            revert("DiamondInclusions: Function does not exist");
         } else {
             assembly {
                 calldatacopy(0, 0, calldatasize())
